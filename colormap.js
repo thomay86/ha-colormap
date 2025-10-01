@@ -1,21 +1,86 @@
+/*
+# colorspace = RGB, HSV
+# interpolation_mode = HSVlon, HSVsho, HSVinc, HSVdec
+*/
+
 const cc = {
     "electricpower": {
         "colorspace":"HSV",
-        "interpolation_mode":"HSVlong",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"lon",
         "axis":"lin",
         "mapping":[
             [25,[240,100,100]],
-            [800,[300,100,100]]
+            [800,[340,100,100]]
         ],
-        "too_high_color":[240,0,100],
-        "too_low_color":[240,100,0]
+        "too_high_color":[300,100,100],
+        "too_low_color":[240,100,10]
+    },
+    "temperature": {
+        "colorspace":"RGB",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"sho",
+        "axis":"lin",
+        "mapping":[
+            [-10,[128,0,255]],
+            [0,[255,255,255]],
+            [10,[0,255,255]],
+            [21,[0,255,0]],
+            [40,[255,0,255]]
+        ],
+        "too_high_color":[255,0,255],
+        "too_low_color":[128,0,255]
+    },
+    "dewpoint": {
+        "colorspace":"RGB",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"sho",
+        "axis":"lin",
+        "mapping":[
+            [-8,[128,0,255]],
+            [0,[255,255,255]],
+            [5,[0,255,255]],
+            [11,[0,255,0]],
+            [24,[255,0,255]]
+        ],
+        "too_high_color":[255,0,255],
+        "too_low_color":[128,0,255]
+    },
+    "wetbulb": {
+        "colorspace":"RGB",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"sho",
+        "axis":"lin",
+        "mapping":[
+            [-8,[128,0,255]],
+            [0,[255,255,255]],
+            [10,[0,255,255]],
+            [16,[0,255,0]],
+            [24,[255,0,255]]
+        ],
+        "too_high_color":[255,0,255],
+        "too_low_color":[128,0,255]
+    },
+    "humidity": {
+        "colorspace":"RGB",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"sho",
+        "axis":"lin",
+        "mapping":[
+            [10,[128,0,255]],
+            [40,[0,255,255]],
+            [55,[0,255,0]],
+            [100,[255,0,255]]
+        ],
+        "too_high_color":[255,0,255],
+        "too_low_color":[128,0,255]
     }
 }
 
 !function() {
     'use strict'
 
-    let debug = true;
+    let debug = false;
 
     function colormap(val,cmap="electricpower",round=true) {
         // choose selected map from collection
@@ -50,8 +115,7 @@ const cc = {
         }
 
         if (debug) {
-            console.log("i / u");
-            console.log(i + " / " + u);
+            console.log("Array indices i =", i, "u =", u);
         }
 
         // interpolate only if value within abscissa bounds
@@ -66,8 +130,7 @@ const cc = {
             let color_lb_intpmode;
             let color_ub_intpmode;
             switch (cm.interpolation_mode) {
-                case "HSVshort":
-                case "HSVlong":
+                case "HSV":
                     switch (cm.colorspace) {
                         case "HSV":
                             color_lb_intpmode = color_lb;
@@ -84,32 +147,25 @@ const cc = {
             // interpolation factor [0,1)
             let x = (val - val_lb) / (val_ub - val_lb);
             switch (cm.interpolation_mode) {
-                case "HSVshort":
-                case "HSVlong":
-                    color_interp = [
-                        interp_linear(x, color_lb_intpmode[0], color_ub_intpmode[0]),
-                        interp_linear(x, color_lb_intpmode[1], color_ub_intpmode[1]),
-                        interp_linear(x, color_lb_intpmode[2], color_ub_intpmode[2])
-                    ];
+                case "HSV":
+                    let h = interp_circular(x, color_lb_intpmode[0], color_ub_intpmode[0],cm.interpolation_mode2);
+                    let s = interp_linear(x, color_lb_intpmode[1], color_ub_intpmode[1]);
+                    let v = interp_linear(x, color_lb_intpmode[2], color_ub_intpmode[2]);
+                    color_interp = [h,s,v];
                     break;
             }
 
             switch (cm.interpolation_mode) {
-                case "HSVshort":
-                case "HSVlong":
+                case "HSV":
                     color_interp_rgb = hsvToRgb(color_interp, round);
                     break;
             }
 
             if (debug) {
-                console.log("Value bounds");
-                console.log([val_lb, val_ub]);
-                console.log("Color bounds (" + cm.interpolation_mode + "): ");
-                console.log([color_lb_intpmode, color_ub_intpmode]);
-                console.log("interpolation factor");
-                console.log(x);
-                console.log("interpolated color (" + cm.interpolation_mode + ")");
-                console.log(color_interp);
+                console.log("Value bounds", [val_lb, val_ub]);
+                console.log("Color bounds (" , cm.interpolation_mode , "):", [color_lb_intpmode, color_ub_intpmode]);
+                console.log("interpolation factor", x);
+                console.log("interpolated color (" + cm.interpolation_mode + ")", color_interp);
             }
         } else {
             switch (cm.colorspace) {
@@ -129,6 +185,46 @@ const cc = {
     // linear interpolation for x [0,1) between lower and upper bound
     function interp_linear(x,l,u) {
         return l + x*(u-l);
+    }
+
+    // circular interpolation for x [0,1) - assuming x = [0,360°]
+    // written for u > l, but also works the other way round
+    function interp_circular(x,l,u,mode) {
+        let da = u - l;
+        let sho_inc = ((da > 0 && da < 180) || (da < -180)); // is the shorter arc equal to the increasing arc?
+
+        // match modes with only increasing/decreasing arc
+        let use_increasing_arc;
+        switch (mode) {
+            case "inc":
+                use_increasing_arc = true;
+                break;
+            case "dec":
+                use_increasing_arc = false;
+                break;
+            case "sho":
+                use_increasing_arc = sho_inc;
+                break;
+            case "lon":
+                use_increasing_arc = !sho_inc;
+                break;
+        }
+
+        // shorter and longer arc lengths (negative sign: counter-clockwise)
+        let da_inc = (360 + da) % 360;
+        let da_dec = -(360-da_inc);
+        let result = (l + x*(use_increasing_arc ? da_inc : da_dec) + 360) % 360;
+
+        if (debug) {
+            console.log("Shorter arc is the increasing one?", sho_inc);
+            console.log("Use increasing arc?", use_increasing_arc);
+            console.log("da=",da);
+            console.log("da_inc=",da_inc);
+            console.log("da_dec=",da_dec);
+            console.log("result=",result);
+        }
+
+        return result;
     }
 
     /*
