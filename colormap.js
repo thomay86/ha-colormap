@@ -8,7 +8,6 @@ const cc = {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
         "interpolation_mode2":"lon",
-        "axis":"lin",
         "mapping":[
             [25,[240,100,100]],
             [800,[340,100,100]]
@@ -20,7 +19,6 @@ const cc = {
         "colorspace":"RGB",
         "interpolation_mode":"HSV",
         "interpolation_mode2":"sho",
-        "axis":"lin",
         "mapping":[
             [-10,[128,0,255]],
             [0,[255,255,255]],
@@ -35,7 +33,6 @@ const cc = {
         "colorspace":"RGB",
         "interpolation_mode":"HSV",
         "interpolation_mode2":"sho",
-        "axis":"lin",
         "mapping":[
             [-8,[128,0,255]],
             [0,[255,255,255]],
@@ -50,7 +47,6 @@ const cc = {
         "colorspace":"RGB",
         "interpolation_mode":"HSV",
         "interpolation_mode2":"sho",
-        "axis":"lin",
         "mapping":[
             [-8,[128,0,255]],
             [0,[255,255,255]],
@@ -65,7 +61,6 @@ const cc = {
         "colorspace":"RGB",
         "interpolation_mode":"HSV",
         "interpolation_mode2":"sho",
-        "axis":"lin",
         "mapping":[
             [10,[128,0,255]],
             [40,[0,255,255]],
@@ -74,6 +69,28 @@ const cc = {
         ],
         "too_high_color":[255,0,255],
         "too_low_color":[128,0,255]
+    },
+    "percent": {
+        "colorspace":"HSV",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"sho",
+        "mapping":[
+            [0,[0,100,100]],
+            [100,[120,100,100]]
+        ],
+        "too_high_color":[120,100,100],
+        "too_low_color":[0,100,100]
+    },
+    "percent_reverse": {
+        "colorspace":"HSV",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"sho",
+        "mapping":[
+            [0,[120,100,100]],
+            [100,[0,100,100]]
+        ],
+        "too_high_color":[0,100,100],
+        "too_low_color":[120,100,100]
     }
 }
 
