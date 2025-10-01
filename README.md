@@ -9,11 +9,17 @@ The example shows how to color a thermometer symbol according to a measured temp
 
 ```yaml
 type: custom:button-card
-entity: input_number.mytemperature
+show_state: true
+show_name: false
+entity: input_number.temperature_test
 icon: mdi:thermometer
+state_display: >
+  [[[ return entity.state + "°C maps to " +
+  colormap(entity.state,'temperature'); ]]]
 styles:
   icon:
     - color: "[[[ return colormap(entity.state,'temperature'); ]]]"
+
 ```
 
 Note that the icon has to be colored using the `styles` entry and not via `state` operators from button-card itself. The function `colormap` currently uses two arguments: the actual value of the entity, and the color map to be used (defined below).
@@ -51,6 +57,24 @@ The color map itself is defined in `colormap.js` as a JSON object entry:
     },
 [...]
 ```
+Power examples:
+
+<img width="230" height="212" alt="773W" src="https://github.com/user-attachments/assets/a9bc26f7-ebaa-4d3e-a1dc-3b118666ab0d" />
+<img width="232" height="211" alt="331W" src="https://github.com/user-attachments/assets/bd340b72-bed5-42dd-884f-32f349dbc25e" />
+<img width="240" height="209" alt="106W" src="https://github.com/user-attachments/assets/5f85bc3b-a85d-448f-bed9-234228b21ccc" />
+<img width="198" height="209" alt="0W" src="https://github.com/user-attachments/assets/b1883ae3-a973-4539-b814-a4498b531612" />
+
+Temperature examples:
+
+<img width="228" height="202" alt="+30" src="https://github.com/user-attachments/assets/db67e502-d4ef-4d28-bd39-0d1dfe3bf964" />
+<img width="221" height="203" alt="+20" src="https://github.com/user-attachments/assets/29e1b398-646b-4ce5-b527-c80af8158299" />
+<img width="227" height="200" alt="+10" src="https://github.com/user-attachments/assets/a0f66a03-bf7b-4e67-88df-7276c664d2b5" />
+<img width="239" height="206" alt="+0" src="https://github.com/user-attachments/assets/a0bac156-b13a-4f61-8971-8de9c0ff512d" />
+<img width="241" height="205" alt="-30" src="https://github.com/user-attachments/assets/09b663f2-f0d3-436d-9e13-489757739772" />
+
+Example section from my dashboard:
+
+<img width="422" height="276" alt="example" src="https://github.com/user-attachments/assets/78a4867f-0eda-4326-81cf-42ac7102f09c" />
 
 The following entries are available:
 
@@ -65,9 +89,16 @@ The following entries are available:
 
 For more information regarding the color interpolation in HSV colorspace, check out e.g. [this link](https://facelessuser.github.io/coloraide/interpolation/#hue-interpolation). I recommend using the shorter arc `sho` if more than two reference points are given in the mapping; use the longer arc `lon` for only two reference points.
 
+For getting a hold of other color spaces than RGB, check out [this link](https://www.hslpicker.com/#c0ff33). For playing around with color gradients, I recommend [this link](https://colordesigner.io/gradient-generator).
+
 ## Updating
 When a new version of the code is available, ***first make a backup copy of your individual colormap.js***!
 
 Overwrite the existing `colormap.js` with the new one and replace the JSON part with the JSON from your backup file. In Lovelace, you will most probably have to force your browser to reload the file: Go to 'manage resources' again, click on the `/local/colormap.js` entry, and change the string to something like `/local/colormap.js?ver=2` (you can use anything behind the `?`). Go back to your dashboard and refresh. 
 
 I am not satisfied with the user-defined JSON being inside the main JavaScript file, but I didn't find a way yet to split the file, because it seems Home Assistant doesn't allow the script file to access any other file. If you know a way, please let me know ;-)
+
+
+
+
+
