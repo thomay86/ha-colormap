@@ -1,6 +1,11 @@
 /*
-# colorspace = RGB, HSV
-# interpolation_mode = HSVlon, HSVsho, HSVinc, HSVdec
+JavaScript code for color mapping Home Assistant Lovelace cards
+created by Thomas May (2025) under the MIT License
+*/
+
+/*
+### BEGINNING OF USER-DEFINED JSON SECTION ###
+### vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ###
 */
 
 const cc = {
@@ -9,50 +14,61 @@ const cc = {
         "interpolation_mode":"HSV",
         "interpolation_mode2":"lon",
         "mapping":[
-            [25,[240,100,100]],
-            [800,[340,100,100]]
+            [25,[240,80,100]],
+            [800,[340,80,100]]
         ],
-        "too_high_color":[300,100,100],
-        "too_low_color":[240,100,10]
+        "too_high_color":[300,80,100],
+        "too_low_color":[240,80,10]
+    },
+    "heat_percent": {
+        "colorspace":"HSV",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"lon",
+        "mapping":[
+            [1,[360,80,20]],
+            [100,[360,80,100]]
+        ],
+        "too_high_color":[360,80,100],
+        "too_low_color":[360,80,0]
     },
     "temperature": {
-        "colorspace":"RGB",
+        "colorspace":"HSV",
         "interpolation_mode":"HSV",
         "interpolation_mode2":"sho",
         "mapping":[
-            [-10,[128,0,255]],
-            [0,[255,255,255]],
-            [10,[0,255,255]],
-            [21,[0,255,0]],
-            [40,[255,0,255]]
+            [-10,[300,80,100]],
+            [0,[240,80,100]],
+            [10,[180,80,100]],
+            [21,[120,80,100]],
+            [40,[300,80,100]]
         ],
-        "too_high_color":[255,0,255],
-        "too_low_color":[128,0,255]
+        "too_high_color":[300,80,100],
+        "too_low_color":[300,80,100]
     },
     "dewpoint": {
-        "colorspace":"RGB",
+        "colorspace":"HSV",
         "interpolation_mode":"HSV",
         "interpolation_mode2":"sho",
         "mapping":[
-            [-8,[128,0,255]],
-            [0,[255,255,255]],
-            [5,[0,255,255]],
-            [11,[0,255,0]],
-            [24,[255,0,255]]
+            [-6,[300,80,100]],
+            [0,[240,80,100]],
+            [6,[180,80,100]],
+            [12,[120,80,100]],
+            [24,[300,80,100]]
         ],
         "too_high_color":[255,0,255],
         "too_low_color":[128,0,255]
     },
     "wetbulb": {
-        "colorspace":"RGB",
+        "colorspace":"HSV",
         "interpolation_mode":"HSV",
         "interpolation_mode2":"sho",
         "mapping":[
-            [-8,[128,0,255]],
-            [0,[255,255,255]],
-            [10,[0,255,255]],
-            [16,[0,255,0]],
-            [24,[255,0,255]]
+            [-6,[300,80,100]],
+            [4,[240,80,100]],
+            [12,[180,80,100]],
+            [16,[120,80,100]],
+            [24,[300,80,100]]
         ],
         "too_high_color":[255,0,255],
         "too_low_color":[128,0,255]
@@ -91,8 +107,39 @@ const cc = {
         ],
         "too_high_color":[0,100,100],
         "too_low_color":[120,100,100]
+    },
+    "pm25": {
+        "colorspace":"HSV",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"dec",
+        "mapping":[
+            [5,[120,80,100]],
+            [20,[60,80,100]],
+            [50,[30,80,100]],
+            [75,[0,80,100]],
+        ],
+        "too_high_color":[300,80,100],
+        "too_low_color":[120,80,100]
+    },
+    "voc": {
+        "colorspace":"HSV",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"dec",
+        "mapping":[
+            [50,[120,80,100]],
+            [100,[60,80,100]],
+            [150,[30,80,100]],
+            [300,[0,80,100]],
+        ],
+        "too_high_color":[300,80,100],
+        "too_low_color":[120,80,100]
     }
 }
+
+/*
+## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ###
+## END OF USER-DEFINED JSON SECTION ###
+*/
 
 !function() {
     'use strict'
@@ -208,7 +255,10 @@ const cc = {
     // written for u > l, but also works the other way round
     function interp_circular(x,l,u,mode) {
         let da = u - l;
-        let sho_inc = ((da > 0 && da < 180) || (da < -180)); // is the shorter arc equal to the increasing arc?
+
+        // check whether shorter arc equals the increasing arc, taken from
+        // https://developer.mozilla.org/en-US/docs/Web/CSS/hue-interpolation-method
+        let sho_inc = ((da > 0 && da < 180) || (da < -180));
 
         // match modes with only increasing/decreasing arc
         let use_increasing_arc;
@@ -243,11 +293,6 @@ const cc = {
 
         return result;
     }
-
-    /*
-    color conversion functions
-    refer to https://www.hslpicker.com/#ff0000 for comparison
-     */
 
     /* conversion from RGB to HSL/HSV taken from
     https://de.wikipedia.org/wiki/HSV-Farbraum#Umrechnung_RGB_in_HSV/HSL
@@ -322,6 +367,13 @@ const cc = {
         return [res[0], res[1], res[2]];
     }
 
+    /* conversion from HSL/HSV to RGB taken from
+    https://de.wikipedia.org/wiki/HSV-Farbraum#Umrechnung_HSV_in_RGB
+    H - Hue [0°,360°) with 0° = red, 120° = green, 240° = blue
+    S - Saturation [0%,100%]
+    L - Lightness [0%, 100%]
+    V - Value [0%, 100%]
+     */
     function hsvToRgb(hsv,round=false) {
         let h = Math.floor(hsv[0]/60);
         let s = hsv[1]/100;
@@ -372,6 +424,7 @@ const cc = {
     }
 
     // expose to Home Assistant (not sure what it does, but it works)
+    // snippet taken from https://github.com/alexei/sprintf.js/blob/3a0d8c26d291b5bd9f1974877ecc50739921d6f5/src/sprintf.js
     if (typeof exports !== 'undefined') {
         exports['colormap'] = colormap
         exports['rgbToHsv'] = rgbToHsv
