@@ -91,10 +91,16 @@ For more information regarding the color interpolation in HSV colorspace, check 
 
 For getting a hold of other color spaces than RGB, check out [this link](https://www.hslpicker.com/#c0ff33). For playing around with color gradients, I recommend [this link](https://colordesigner.io/gradient-generator).
 
+## Testing/Lovelace caching
+Unfortunately, testing your color settings by editing `colormap.js` can be a bit cumbersome due to your browser caching the script file. Therefore, changes in the script file are not directly reflected in your browser. To circumvent this, two methods are available:
+
+* In Lovelace, go to 'manage resources' again, click on the `/local/colormap.js` entry, and change the string to something like `/local/colormap.js?ver=2` (you can use anything behind the `?`, I basically start incrementing the number). Go back to your dashboard and refresh.
+* In your browser, disable caching for your dashboard. In Google Chrome, open your dashboard, then open the developer tools (Ctrl + Shift + I), navigate to the 'Network' tab, and choose 'Disable cache'. This way, the cache for this site is disabled, as long as the dev tools window is open.
+
 ## Updating
 When a new version of the code is available, ***first make a backup copy of your individual colormap.js***!
 
-Overwrite the existing `colormap.js` with the new one and replace the JSON part with the JSON from your backup file. In Lovelace, you will most probably have to force your browser to reload the file: Go to 'manage resources' again, click on the `/local/colormap.js` entry, and change the string to something like `/local/colormap.js?ver=2` (you can use anything behind the `?`). Go back to your dashboard and refresh. 
+Overwrite the existing `colormap.js` with the new one and replace the JSON part with the JSON from your backup file. Remember to force-update the cached file as described above.
 
 I am not satisfied with the user-defined JSON being inside the main JavaScript file, but I didn't find a way yet to split the file, because it seems Home Assistant doesn't allow the script file to access any other file. If you know a way, please let me know ;-)
 
