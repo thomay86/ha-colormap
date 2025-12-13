@@ -8,6 +8,6 @@ let rgb2 = hsvToRgb(hsv,true);
 console.log("Test conversion:");
 console.log("RGB" , rgb , "=> HSV" , hsv , "=> RGB" , rgb2);
 
-let value = 40;
-let cmap = "temperature";
+let value = 50;
+let cmap = "boiler_temperature";
 console.log("Interpolated color " , colormap(value,cmap));

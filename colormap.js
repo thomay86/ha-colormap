@@ -5,6 +5,11 @@ created by Thomas May (2025) under the MIT License
 
 /*
 ### BEGINNING OF USER-DEFINED JSON SECTION ###
+### colorspace options: RGB, HSV
+### interpolation_mode: HSV
+    interpolation_mode2: short, long (short or long arc)
+### interpolation_mode: RGB
+    interpolation_mode2: [float] (specify gamma value; 1.0 for linear interpolation, 2.2 for more perceptual gradient)
 ### vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ###
 */
 
@@ -12,7 +17,7 @@ const cc = {
     "electricpower": {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"lon",
+        "interpolation_mode2":"long",
         "mapping":[
             [25,[240,80,100]],
             [800,[340,80,100]]
@@ -20,10 +25,21 @@ const cc = {
         "too_high_color":[300,80,100],
         "too_low_color":[240,80,10]
     },
-    "heat_percent": {
+    "heating_kw": {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"lon",
+        "interpolation_mode2":"long",
+        "mapping":[
+            [0.1,[360,80,20]],
+            [2,[360,80,100]]
+        ],
+        "too_high_color":[360,80,100],
+        "too_low_color":[360,80,0]
+    },
+    "heating_percent": {
+        "colorspace":"HSV",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"long",
         "mapping":[
             [1,[360,80,20]],
             [100,[360,80,100]]
@@ -31,13 +47,24 @@ const cc = {
         "too_high_color":[360,80,100],
         "too_low_color":[360,80,0]
     },
+    "boiler_temperature": {
+        "colorspace":"HSV",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"long",
+        "mapping":[
+            [20,[210,80,100]],
+            [70,[360,80,100]]
+        ],
+        "too_high_color":[360,80,100],
+        "too_low_color":[210,80,100]
+    },
     "temperature": {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"sho",
+        "interpolation_mode2":"short",
         "mapping":[
-            [-10,[300,80,100]],
-            [0,[240,80,100]],
+            [-5,[300,80,100]],
+            [0,[240,0,100]],
             [10,[180,80,100]],
             [21,[120,80,100]],
             [40,[300,80,100]]
@@ -48,35 +75,35 @@ const cc = {
     "dewpoint": {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"sho",
+        "interpolation_mode2":"short",
         "mapping":[
-            [-6,[300,80,100]],
-            [0,[240,80,100]],
+            [-5,[300,80,100]],
+            [0,[240,0,100]],
             [6,[180,80,100]],
             [12,[120,80,100]],
             [24,[300,80,100]]
         ],
-        "too_high_color":[255,0,255],
-        "too_low_color":[128,0,255]
+        "too_high_color":[300,80,100],
+        "too_low_color":[300,80,100]
     },
     "wetbulb": {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"sho",
+        "interpolation_mode2":"short",
         "mapping":[
-            [-6,[300,80,100]],
-            [4,[240,80,100]],
-            [12,[180,80,100]],
+            [-5,[300,80,100]],
+            [0,[240,0,100]],
+            [10,[180,80,100]],
             [16,[120,80,100]],
             [24,[300,80,100]]
         ],
-        "too_high_color":[255,0,255],
-        "too_low_color":[128,0,255]
+        "too_high_color":[300,80,100],
+        "too_low_color":[300,80,100]
     },
     "humidity": {
         "colorspace":"RGB",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"sho",
+        "interpolation_mode2":"short",
         "mapping":[
             [10,[128,0,255]],
             [40,[0,255,255]],
@@ -86,10 +113,22 @@ const cc = {
         "too_high_color":[255,0,255],
         "too_low_color":[128,0,255]
     },
+    "pressure": {
+        "colorspace":"HSV",
+        "interpolation_mode":"HSV",
+        "interpolation_mode2":"short",
+        "mapping":[
+            [990,[300,80,100]],
+            [1013,[120,80,100]],
+            [1040,[300,80,100]]
+        ],
+        "too_high_color":[300,80,100],
+        "too_low_color":[300,80,100]
+    },
     "percent": {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"sho",
+        "interpolation_mode2":"short",
         "mapping":[
             [0,[0,100,100]],
             [100,[120,100,100]]
@@ -100,7 +139,7 @@ const cc = {
     "percent_reverse": {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"sho",
+        "interpolation_mode2":"short",
         "mapping":[
             [0,[120,100,100]],
             [100,[0,100,100]]
@@ -144,7 +183,7 @@ const cc = {
 !function() {
     'use strict'
 
-    let debug = false;
+    let debug = true;
 
     function colormap(val,cmap="electricpower",round=true) {
         // choose selected map from collection
@@ -206,6 +245,17 @@ const cc = {
                             break;
                     }
                     break;
+                case "RGB":
+                    switch (cm.colorspace) {
+                        case "HSV":
+                            color_lb_intpmode = hsvToRgb(color_lb);
+                            color_ub_intpmode = hsvToRgb(color_ub);
+                            break;
+                        case "RGB":
+                            color_lb_intpmode = color_lb;
+                            color_ub_intpmode = color_ub;
+                            break;
+                    }
             }
 
             // interpolation factor [0,1)
@@ -217,11 +267,20 @@ const cc = {
                     let v = interp_linear(x, color_lb_intpmode[2], color_ub_intpmode[2]);
                     color_interp = [h,s,v];
                     break;
+                case "RGB":
+                    let r = interp_rgb(x, color_lb_intpmode[0], color_ub_intpmode[0],cm.interpolation_mode2);
+                    let g = interp_rgb(x, color_lb_intpmode[1], color_ub_intpmode[1],cm.interpolation_mode2);
+                    let b = interp_rgb(x, color_lb_intpmode[2], color_ub_intpmode[2],cm.interpolation_mode2);
+                    color_interp = [r,g,b];
+                    break;
             }
 
             switch (cm.interpolation_mode) {
                 case "HSV":
                     color_interp_rgb = hsvToRgb(color_interp, round);
+                    break;
+                case "RGB":
+                    color_interp_rgb = rgbCleanup(color_interp, round);
                     break;
             }
 
@@ -237,7 +296,7 @@ const cc = {
                     color_interp_rgb = hsvToRgb(color_interp, round);
                     break;
                 case "RGB":
-                    color_interp_rgb = color_interp;
+                    color_interp_rgb = rgbCleanup(color_interp, round);
                     break;
             }
         }
@@ -249,6 +308,11 @@ const cc = {
     // linear interpolation for x [0,1) between lower and upper bound
     function interp_linear(x,l,u) {
         return l + x*(u-l);
+    }
+
+    // RGB interpolation (mode2 = gamma value, 1.0 = linear)
+    function interp_rgb(x,l,u,gamma) {
+        return (((l + x*(u-l))/255)**gamma)*255;
     }
 
     // circular interpolation for x [0,1) - assuming x = [0,360°]
@@ -269,10 +333,10 @@ const cc = {
             case "dec":
                 use_increasing_arc = false;
                 break;
-            case "sho":
+            case "short":
                 use_increasing_arc = sho_inc;
                 break;
-            case "lon":
+            case "long":
                 use_increasing_arc = !sho_inc;
                 break;
         }
@@ -365,6 +429,15 @@ const cc = {
     function rgbToHsl(rgb,round=false) {
         let res = rgbToHslv(rgb,round);
         return [res[0], res[1], res[2]];
+    }
+
+    function rgbCleanup(rgb, round = false) {
+        if (round) {
+            return [Math.round(rgb[0]),Math.round(rgb[1]),Math.round(rgb[2])];
+        } else {
+            return rgb;
+        }
+
     }
 
     /* conversion from HSL/HSV to RGB taken from
