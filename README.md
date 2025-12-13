@@ -33,7 +33,7 @@ The color map itself is defined in `colormap.js` as a JSON object entry:
 "electricpower": {
         "colorspace":"HSV",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"lon",
+        "interpolation_mode2":"long",
         "mapping":[
             [25,[240,100,100]],
             [800,[340,100,100]]
@@ -44,7 +44,7 @@ The color map itself is defined in `colormap.js` as a JSON object entry:
 "temperature": {
         "colorspace":"RGB",
         "interpolation_mode":"HSV",
-        "interpolation_mode2":"sho",
+        "interpolation_mode2":"short",
         "mapping":[
             [-10,[128,0,255]],
             [0,[255,255,255]],
@@ -81,8 +81,8 @@ The following entries are available:
 | entry  | description |
 | :--- | :--- |
 | `colorspace`  | The colorspace in which the mapping colors are defined. Currently supported: `RGB` (red, green, blue, each in [0,255]) and `HSV` (hue [0,360]°, saturation [0,100]%, value [0,100]%).  |
-| `interpolation_mode` | The colorspace in which the interpolation takes place. Currently supported: `HSV`. |
-| `interpolation_mode2` | The sub-mode of interpolation. For `HSV`, these are `sho` (shorter arc), `lon` (longer arc), `inc` (increasing arc), `dec` (decreasing arc). |
+| `interpolation_mode` | The colorspace in which the interpolation takes place. Currently supported: `HSV`, `RGB`. |
+| `interpolation_mode2` | The sub-mode of interpolation. For `HSV`, these are `short` (shorter arc), `long` (longer arc), `inc` (increasing arc), `dec` (decreasing arc). For `RGB`, specify the gamma value  (`float`, typical: 2.2; 1.0 will give linear interpolation). |
 | `mapping` | An array of tuples defining pairs of (value, color). The color itself is an array specified to the defined `colorspace`, thus `[R,G,B]` or `[H,S,V]`. You can not mix colorspaces. |
 | `too_high_color` | The color which shall be used if the value is >= the highest specified mapping value. |
 | `too_low_color` | The color which shall be used if the value is < the lowest specified mapping value. |
